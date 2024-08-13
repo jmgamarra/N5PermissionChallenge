@@ -20,9 +20,15 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/Permission.Api/out .
 
+# Descargar wait-for-it
+RUN apt-get update && apt-get install -y curl \
+    && curl -o /usr/local/bin/wait-for-it https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
+    && chmod +x /usr/local/bin/wait-for-it
+
 # Exponer el puerto que tu API usa
-EXPOSE 80
+EXPOSE 8080
 EXPOSE 443
 
 # Comando para ejecutar la aplicación
-ENTRYPOINT ["dotnet", "Permission.Api.dll"]
+#ENTRYPOINT ["dotnet", "Permission.Api.dll"]
+ENTRYPOINT ["wait-for-it", "kafka:9092", "--", "dotnet", "Permission.Api.dll"]

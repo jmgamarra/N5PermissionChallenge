@@ -35,7 +35,7 @@ public class PermissionsDbContext : DbContext
         if (!optionsBuilder.IsConfigured)
         {
             optionsBuilder.UseSqlServer("N5Connection", options =>
-                options.MigrationsAssembly("PermissionsWeb.Data"));
+                options.MigrationsAssembly("Permission.Data"));
         }
     }
 }
