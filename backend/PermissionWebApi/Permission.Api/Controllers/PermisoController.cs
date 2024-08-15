@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using Confluent.Kafka;
+using Elasticsearch.Net;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -16,8 +18,24 @@ public class PermisoController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> RequestPermiso([FromBody] RequestPermisoCommand command)
     {
-        var oPermiso = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetPermisoById), new { id = oPermiso.Id }, oPermiso);
+   
+        try
+        {
+            var oPermiso = await _mediator.Send(command);
+            return CreatedAtAction(nameof(GetPermisoById), new { id = oPermiso.Id }, oPermiso);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ElasticsearchClientException ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error al guardar en Elasticsearch." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error interno del servidor." });
+        }
     }
 
     [HttpPut("{id}")]

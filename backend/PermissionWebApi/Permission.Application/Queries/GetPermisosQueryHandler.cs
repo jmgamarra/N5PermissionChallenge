@@ -29,18 +29,31 @@ public class GetPermisosQueryHandler : IRequestHandler<GetPermisosQuery, IEnumer
         {
             throw new Exception("Failed to retrieve documents from Elasticsearch.");
         }
+        // no documents
+        if (searchResponse.Documents == null || !searchResponse.Documents.Any())
+        {
+            return Enumerable.Empty<Permiso>();
+        }
 
         // Add Kafka message
         var message = new
         {
             Id = Guid.NewGuid(),
-            NameOperation = "get"
+            NameOperation = "get",
+            Timestamp = DateTime.UtcNow
         };
 
-        //var topic = _configuration["Kafka:Topic"];
-        await _kafkaProducerService.ProduceAsync(JsonConvert.SerializeObject(message));
-
-
+        try
+        {
+            var jsonMessage = JsonConvert.SerializeObject(message);
+            await _kafkaProducerService.ProduceAsync(jsonMessage);
+        }
+        catch (Exception ex)
+        {
+            // Manejar error de Kafka
+            // Aquí podrías loggear el error y decidir si lanzar una excepción o no
+            throw new InvalidOperationException("Failed to send message to Kafka.", ex);
+        }
 
         return searchResponse.Documents;
     }

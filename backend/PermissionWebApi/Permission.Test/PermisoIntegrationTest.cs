@@ -1,10 +1,15 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Permission.Domain;
-using System.Text;
+using System.Net.Http;
 using System.Text.Json;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
+using Microsoft.EntityFrameworkCore;
 
 public class PermisoIntegrationTest
 {
@@ -12,17 +17,56 @@ public class PermisoIntegrationTest
 
     public PermisoIntegrationTest()
     {
-        var hostBuilder = new HostBuilder()
-            .ConfigureWebHost(webHost =>
+        // Configurar el servidor de pruebas
+        var builder = new WebHostBuilder()
+            .ConfigureServices(services =>
             {
-                webHost.UseTestServer()
-                       .UseStartup<Program>(); // Asegúrate de que la clase `Program` esté accesible.
+                // Agregar servicios para pruebas
+                services.AddControllers()
+                        .AddJsonOptions(options =>
+                        {
+                            options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                            options.JsonSerializerOptions.MaxDepth = 64;
+                        });
 
-                // Si `Program` no es accesible, puedes usar una clase `Startup` personalizada o similar.
+                services.AddEndpointsApiExplorer();
+                services.AddSwaggerGen();
+
+                // Configura tus servicios aquí (similar a `Program.cs`)
+                // Ejemplo:
+                var connectionString = "YourConnectionString";
+                services.AddDbContext<PermissionsDbContext>(options =>
+                    options.UseSqlServer(connectionString));
+
+                services.AddScoped<IUnitOfWork, UnitOfWork>();
+                services.AddScoped<IPermisoRepository, PermisoRepository>();
+                // Agrega otras configuraciones de servicios necesarias
+            })
+            .Configure(app =>
+            {
+                // Configurar el pipeline de la aplicación
+                app.UseRouting();
+                app.UseAuthorization();
+                app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+                    // Configura tus endpoints aquí (si es necesario)
+                });
             });
 
-        var host = hostBuilder.StartAsync().GetAwaiter().GetResult();
-        _client = host.GetTestClient();
+        // Crear el servidor de pruebas y cliente
+        var server = new TestServer(builder);
+        _client = server.CreateClient();
+    }
+
+    [Fact]
+    public async Task GetPermisos_ReturnsOkResponse1()
+    {
+        var response = await _client.GetAsync("/api/Permisos");
+        response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        Assert.NotNull(responseString);
     }
 
     [Fact]

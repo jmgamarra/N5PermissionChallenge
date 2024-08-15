@@ -21,13 +21,20 @@ public class RequestPermisoCommandHandler : IRequestHandler<RequestPermisoComman
 
     public async Task<Permiso> Handle(RequestPermisoCommand request, CancellationToken cancellationToken)
     {
+        try
+        {
+        var tipoPermisoExistente = await _unitOfWork.TipoPermissions.GetByIdAsync(request.TipoId);
+        if (tipoPermisoExistente == null)
+        {
+            throw new ArgumentException("Tipo de permiso no existe.");
+        }
 
         var oPermiso = new Permiso
         {
             NombreEmpleado = request.Nombre,
             ApellidoEmpleado = request.Apellido,
             FechaPermiso = request.Fecha,
-            TipoPermisoId = request.TipoId,
+            TipoPermiso = tipoPermisoExistente,
         };
         await _unitOfWork.Permissions.AddAsync(oPermiso);
         await _unitOfWork.SaveChangesAsync();
@@ -59,5 +66,11 @@ public class RequestPermisoCommandHandler : IRequestHandler<RequestPermisoComman
         }
 
         return oPermiso;
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
     }
 }

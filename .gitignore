@@ -1,0 +1,52 @@
+# Node modules
+node_modules/
+
+# Build output
+build/
+dist/
+
+# Dependency directories
+jspm_packages/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# NPM logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js build
+.next/
+
+# Jest cache
+.cache/
+jest/
+
+# Docker-related files (if you don't want to track them)
+*.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Others
+*.pem
+*.crt
+*.key

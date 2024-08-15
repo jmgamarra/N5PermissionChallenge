@@ -52,8 +52,22 @@ public class PermisoControllerUnitTests
     {
         // Arrange
         var query = new GetPermisosQuery();
-        var permisos = new List<Permission.Domain.Permiso> { new Permission.Domain.Permiso { Id = 1, /* Initialize properties */ } };
-        _mediatorMock.Setup(m => m.Send(query, It.IsAny<CancellationToken>())).ReturnsAsync(permisos);
+        var permisos = new List<Permission.Domain.Permiso>
+    {
+        new Permission.Domain.Permiso
+        {
+            Id = 1,
+            NombreEmpleado = "Juan",
+            ApellidoEmpleado = "Pérez",
+            FechaPermiso = DateTime.Now,
+            TipoPermisoId = 1 
+            // Otras propiedades si es necesario
+        }
+    };
+
+        _mediatorMock
+            .Setup(m => m.Send(It.IsAny<GetPermisosQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(permisos);
 
         // Act
         var result = await _controller.GetPermisos() as OkObjectResult;
@@ -61,6 +75,16 @@ public class PermisoControllerUnitTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(200, result.StatusCode);
-        Assert.Equal(permisos, result.Value);
+
+        var returnedPermisos = Assert.IsType<List<Permission.Domain.Permiso>>(result.Value);
+        Assert.Equal(permisos.Count, returnedPermisos.Count);
+
+        for (int i = 0; i < permisos.Count; i++)
+        {
+            Assert.Equal(permisos[i].Id, returnedPermisos[i].Id);
+            Assert.Equal(permisos[i].NombreEmpleado, returnedPermisos[i].NombreEmpleado);
+            Assert.Equal(permisos[i].ApellidoEmpleado, returnedPermisos[i].ApellidoEmpleado);
+            // Comparar otras propiedades si es necesario.
+        }
     }
 }

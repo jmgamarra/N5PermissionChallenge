@@ -1,7 +1,16 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  api:
+  frontend:
+    build:
+      context: ./frontend/permiso-app
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - kafka-network
+  backend:
     build:
       context: .
       dockerfile: backend/PermissionWebApi/Permission.Api/Dockerfile
@@ -103,4 +112,5 @@ volumes:
 
 networks:
   kafka-network:
+    name: kafka-network
     driver: bridge
