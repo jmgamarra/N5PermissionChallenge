@@ -1,96 +1,106 @@
-// src/components/PermisoForm.js
-import React, { useState } from 'react';
-import { TextField, Button, Container, Typography,FormControl,InputLabel,Select,MenuItem } from '@mui/material';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button, TextField, FormControl, InputLabel, Select, MenuItem, FormHelperText, Container, Typography, Box } from '@mui/material';
+const formatDateForInput = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+const PermisoForm = ({ initialValues = {}, onSubmit,isEditMode }) => {
+  const [nombreEmpleado, setNombreEmpleado] = useState(initialValues.nombreEmpleado || undefined);
+  const [apellidoEmpleado, setApellidoEmpleado] = useState(initialValues.apellidoEmpleado || undefined);
+  const [fechaPermiso, setFechaPermiso] = useState(initialValues.fechaPermiso ? formatDateForInput(new Date(initialValues.fechaPermiso)) : '');
+  const [tipoPermisoId, setTipoPermisoId] = useState(parseInt(initialValues.tipoId) || undefined);
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
-const PermisoForm = () => {
-  const [nombreEmpleado, setNombreEmpleado] = useState('');
-  const [apellidoEmpleado, setApellidoEmpleado] = useState('');
-  const [fechaPermiso, setFechaPermiso] = useState('');
-  const [tipoPermisoId, setTipoPermisoId] = useState('');
 
-  // const handleSubmit = async (event) => {
-  //   event.preventDefault();
-  //   try {
-  //     await axios.post('http://localhost:5001/api/permiso', {
-  //       nombreEmpleado,
-  //       apellidoEmpleado,
-  //       fechaPermiso,
-  //       tipoPermisoId,
-  //     },{   headers: {
-  //       'Content-Type': 'application/json'
-  //   }});
-  //     alert('Permiso enviado correctamente');
-  //   } catch (error) {
-  //     console.error('Hubo un error al enviar el permiso:', error);
-  //   }
-  // };
-  const handleSubmit = async (event) => {
+  const validateForm = () => {
+    
+    const newErrors = {};
+    if (!nombreEmpleado) newErrors.nombreEmpleado = 'El nombre es obligatorio';
+    if (!apellidoEmpleado) newErrors.apellidoEmpleado = 'El apellido es obligatorio';
+    if (!fechaPermiso) newErrors.fechaPermiso = 'La fecha es obligatoria';
+    if (!tipoPermisoId) newErrors.tipoPermisoId = 'El tipo de permiso es obligatorio';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (event) => {
     event.preventDefault();
-    try {
-        const response = await axios.post('http://backend:8080/api/permiso', {
-            nombre: 'Jorge',      // Asegúrate de que estos nombres coincidan con los que espera el backend
-            apellido: 'Ape',
-            fecha: '2024-08-14',          // Verifica el formato de fecha
-            tipoId: 1         // Verifica que sea un número
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        console.log(response); 
-        alert('Permiso enviado correctamente');
-    } catch (error) {
-        console.error('Hubo un error al enviar el permiso:', error.response); // Muestra el detalle del error
+    if (validateForm()) {
+      console.log('Formulario válido');
+      onSubmit({
+        nombreEmpleado,
+        apellidoEmpleado,
+        fechaPermiso,
+        tipoId: tipoPermisoId
+      });
+  
+    } else {
+      console.log('Errores en el formulario:', errors);
     }
-};
+  };
+  const handleCancel = () => {
+    navigate('/');
+  };
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
-        Registrar Permiso
+        {isEditMode ? 'Editar Permiso' : 'Agregar Permiso'}
       </Typography>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} >
         <TextField
-          label="Nombre del Empleado"
-          variant="outlined"
-          fullWidth
-          margin="normal"
+          label="Nombre"
           value={nombreEmpleado}
           onChange={(e) => setNombreEmpleado(e.target.value)}
-        />
-        <TextField
-          label="Apellido del Empleado"
-          variant="outlined"
           fullWidth
           margin="normal"
-          value={apellidoEmpleado}
-          onChange={(e) => setApellidoEmpleado(e.target.value)}
+          error={!!errors.nombreEmpleado}
+          helperText={errors.nombreEmpleado}
         />
         <TextField
-          label="Fecha del Permiso"
+          label="Apellido"
+          value={apellidoEmpleado}
+          onChange={(e) => setApellidoEmpleado(e.target.value)}
+          fullWidth
+          margin="normal"
+          error={!!errors.apellidoEmpleado}
+          helperText={errors.apellidoEmpleado}
+        />
+        <TextField
+          label="Fecha"
           type="date"
-          variant="outlined"
+          value={fechaPermiso}
+          onChange={(e) => setFechaPermiso(e.target.value)}
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
-          value={fechaPermiso}
-          onChange={(e) => setFechaPermiso(e.target.value)}
+          error={!!errors.fechaPermiso}
+          helperText={errors.fechaPermiso}
         />
-            <FormControl variant="outlined" fullWidth margin="normal">
-      <InputLabel id="tipo-permiso-label">Tipo de Permiso</InputLabel>
-      <Select
-        labelId="tipo-permiso-label"
-        value={tipoPermisoId}
-        onChange={(e) => setTipoPermisoId(e.target.value)}
-        label="Tipo de Permiso"
-      >
-        <MenuItem value={1}>Tipo 1</MenuItem>
-        <MenuItem value={2}>Tipo 2</MenuItem>
-      </Select>
-    </FormControl>
-        <Button type="submit" variant="contained" color="primary">
-          Enviar
-        </Button>
+        <FormControl fullWidth margin="normal" error={!!errors.tipoPermisoId}>
+          <InputLabel id="tipo-permiso-label">Tipo de Permiso</InputLabel>
+          <Select
+            labelId="tipo-permiso-label"
+            value={tipoPermisoId}
+            onChange={(e) => setTipoPermisoId(e.target.value)}
+            label="Tipo de Permiso"
+          >
+            <MenuItem value={1}>Tipo 1</MenuItem>
+            <MenuItem value={2}>Tipo 2</MenuItem>
+          </Select>
+          <FormHelperText>{errors.tipoPermisoId}</FormHelperText>
+        </FormControl>
+        <Box display="flex" justifyContent="flex-end" mt={2}>
+          <Button type="submit" variant="contained" color="primary" style={{ marginRight: '10px' }}>
+            {isEditMode ? 'Editar' : 'Agregar'}
+          </Button>
+          <Button type="button" variant="contained" color="secondary" onClick={(e) => {handleCancel(e.target.value)}}>
+            Cancelar
+          </Button>
+        </Box>
       </form>
     </Container>
   );

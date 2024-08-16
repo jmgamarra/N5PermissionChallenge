@@ -1,15 +1,19 @@
-// src/index.js
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client'; // Importar desde 'react-dom/client'
 import App from './App';
-import { ThemeProvider } from '@mui/material/styles';
-import theme from './theme';
+import './index.css'; // Si tienes estilos globales
 
-ReactDOM.render(
-  <React.StrictMode>
-    <ThemeProvider theme={theme}>
+// Verificar si el elemento con el id 'root' existe
+const rootElement = document.getElementById('root');
+
+if (rootElement) {
+  // Crear la raíz y renderizar la aplicación
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <React.StrictMode>
       <App />
-    </ThemeProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+    </React.StrictMode>
+  );
+} else {
+  console.error('Element with id "root" not found.');
+}
